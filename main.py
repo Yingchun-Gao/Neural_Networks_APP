@@ -9,39 +9,44 @@ from src.models.train_model import (
 )
 from src.visualization.visualize import plot_correlation, plot_loss_curve
 import pandas as pd
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def run_pipeline():
+    try:
+        logger.info("Pipeline started")
 
-    # Step 1: Prepare dataset
-    make_dataset()
+        make_dataset()
 
-    # Step 2: Build features
-    X_train, X_test, y_train, y_test, scaler = build_features()
+        X_train, X_test, y_train, y_test, scaler = build_features()
 
-    # Step 3: Train model
-    model = train_model(X_train, y_train)
+        model = train_model(X_train, y_train)
 
-    # Step 4: Evaluate model
-    accuracy, matrix = evaluate_model(model, X_test, y_test)
+        accuracy, matrix = evaluate_model(model, X_test, y_test)
 
-    print(f"Test Accuracy: {accuracy:.4f}")
-    print(matrix)
+        logger.info(f"Accuracy: {accuracy:.4f}")
+        logger.info(f"Confusion Matrix:\n{matrix}")
 
-    # Step 5: Save model artifacts
-    save_model(model)
-    save_scaler(scaler)
+        save_model(model)
+        save_scaler(scaler)
 
-    # Step 6: Save feature column structure
-    df = pd.read_csv("data/processed/admission_clean.csv")
-    df = pd.get_dummies(df, columns=["University_Rating", "Research"], dtype=int)
+        df = pd.read_csv("data/processed/admission_clean.csv")
+        df = pd.get_dummies(df, columns=["University_Rating", "Research"], dtype=int)
 
-    feature_columns = df.drop("Admit_Chance", axis=1).columns
-    save_feature_columns(feature_columns)
+        feature_columns = df.drop("Admit_Chance", axis=1).columns
+        save_feature_columns(feature_columns)
 
-    # Step 7: Visualizations
-    plot_correlation(df)
-    plot_loss_curve(model)
+        plot_correlation(df)
+        plot_loss_curve(model)
+
+        logger.info("Pipeline finished")
+
+    except Exception as e:
+        logger.error(f"Pipeline failed: {e}")
+        raise
 
 
 if __name__ == "__main__":
